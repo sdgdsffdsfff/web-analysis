@@ -1,6 +1,6 @@
 {
   "name": "web-analysis",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "web analysis",
   "main": "index.js",
   "scripts": {
@@ -19,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/baidu-edu/web-analysis/issues"
   },
-  "homepage": "https://github.com/baidu-edu/web-analysis"
+  "homepage": "https://github.com/baidu-edu/web-analysis",
+  "dependencies": {
+    "gulp-util": "^2.2.20",
+    "gulp": "^3.8.6",
+    "gulp-concat": "^2.3.3",
+    "gulp-uglify": "^0.3.1"
+  }
 }
