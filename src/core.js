@@ -62,6 +62,24 @@
     }
 
     /**
+     * 扩展对象
+     *
+     * @inner
+     * @param {Object} target
+     * @param {Object=} source
+     */
+    function extend(target, source) {
+        if (source) {
+            each(
+                source,
+                function (value, key) {
+                    target[key] = value;
+                }
+            );
+        }
+    }
+
+    /**
      * 发送请求
      *
      * @inner
@@ -108,8 +126,19 @@
 
     /// 在触发 load 事件后发送数据
     on(window, 'load', function pageReady() {
+
         off(window, 'load', pageReady);
-        exports.ready();
+
+        // 使用延时的理由
+        // 1. 不跟业务代码抢 onload 时间点，页面尽早可交互
+        // 2. firstPaint（白屏时间）在 onload 读取可能是 0
+        setTimeout(
+            function () {
+                exports.ready();
+            },
+            1000
+        );
+
     });
 
     // 监控 js 报错
@@ -177,6 +206,8 @@
          * 初始化，入口方法
          *
          * @param {Object} options 用户配置
+         * @param {string} options.url 发送日志地址
+         * @param {Object} options.data 需要发送的数据，比如 productName sessionId 之类的
          */
         init: function (options) {
 
@@ -200,32 +231,32 @@
          */
         ready: function () {
 
-            var data = { };
+            var data = {
+                pageUrl: exports.pageUrl,
+                referrer: exports.referrer
+            };
+
+            extend(data, exports.data);
 
             each(
                 exports.plugins,
                 function (plugin, name) {
                     if (typeof plugin.ready === 'function') {
-
                         plugin.ready();
-
-                        if (plugin.data) {
-                            each(
-                                plugin.data,
-                                function (value, key) {
-                                    if (value != null) {
-                                        data[key] = value;
-                                    }
-                                }
-                            );
-                        }
-
+                        extend(data, plugin.data);
                     }
                 }
             );
 
-            data.pageUrl = exports.pageUrl;
-            data.referrer = exports.referrer;
+            // 清理空数据
+            each(
+                data,
+                function (value, key) {
+                    if (value == null || value === '') {
+                        delete data[key];
+                    }
+                }
+            );
 
             exports.info(data);
         }
