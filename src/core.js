@@ -7,26 +7,58 @@
     'use strict';
 
     /**
-     * onload 需要一次发送的数据
+     * 绑定事件
      *
      * @inner
-     * @type {Object}
+     * @type {Function}
      */
-    var data = { };
+    var on;
+
+    /**
+     * 解绑事件
+     *
+     * @inner
+     * @type {Function}
+     */
+    var off;
+
+    if (window.addEventListener) {
+        on = function (element, type, handler) {
+            element.addEventListener(type, handler, false);
+        };
+        off = function (element, type, handler) {
+            element.removeEventListener(type, handler);
+        };
+    }
+    else {
+        on = function (element, type, handler) {
+            element.attachEvent('on' + type, handler);
+        };
+        off = function (element, type, handler) {
+            element.detachEvent('on' + type, handler);
+        };
+    }
 
     /**
      * 遍历对象
      *
      * @inner
-     * @param {Object} obj
+     * @param {Object} target
      * @param {Function} callback
      */
-    function each(obj, callback) {
-        Object.keys(obj).forEach(
-            function (name) {
-                callback(obj[name], name);
+    function each(target, callback) {
+        if ('length' in target) {
+            for (var i = 0, len = target.length; i < len; i++) {
+                callback(target[i], i);
             }
-        );
+        }
+        else {
+            for (var key in target) {
+                if (target.hasOwnProperty(key)) {
+                    callback(target[key], key);
+                }
+            }
+        }
     }
 
     /**
@@ -68,23 +100,41 @@
             };
 
             // 加时间戳
-            queryArr.push(Date.now().toString(36));
+            queryArr.push((+new Date()).toString(36));
 
             img.src = url + '?' + queryArr.join('&');
         };
     })();
 
-
-    window.addEventListener('load', pageReady, false);
-
-    function pageReady(e) {
-
-        window.removeEventListener('load', pageReady);
+    /// 在触发 load 事件后发送数据
+    on(window, 'load', function pageReady() {
+        off(window, 'load', pageReady);
         exports.ready();
+    });
 
-        data =
-        pageReady = null;
-    }
+    // 监控 js 报错
+    on(window, 'error', function (e) {
+
+        var data = {
+            from: 'js'
+        };
+
+        // IE 可能是字符串
+        if (!e || typeof e === 'string') {
+            e = window.event;
+            data.msg = e.errorMessage;
+            data.line = e.errorLine;
+            data.col = e.errorCharacter;
+        }
+        else {
+            data.msg = e.message;
+            data.line = e.lineno;
+            data.col = e.colno;
+        }
+
+        exports.error(data);
+    });
+
 
     var exports = {
 
@@ -133,8 +183,9 @@
             each(
                 options,
                 function (value, name) {
-                    if (exports.plugins[name]) {
-                        exports.plugins[name].init(value);
+                    var plugin = exports.plugins[name];
+                    if (plugin && typeof plugin.init === 'function') {
+                        plugin.init(value);
                     }
                     else {
                         exports[name] = value;
@@ -149,11 +200,26 @@
          */
         ready: function () {
 
+            var data = { };
+
             each(
                 exports.plugins,
                 function (plugin, name) {
                     if (typeof plugin.ready === 'function') {
+
                         plugin.ready();
+
+                        if (plugin.data) {
+                            each(
+                                plugin.data,
+                                function (value, key) {
+                                    if (value != null) {
+                                        data[key] = value;
+                                    }
+                                }
+                            );
+                        }
+
                     }
                 }
             );
@@ -162,32 +228,13 @@
             data.referrer = exports.referrer;
 
             exports.info(data);
-        },
-
-
-        /**
-         * 添加页面 load 之后需要发送的数据
-         *
-         * @param {string|Object} name
-         * @param {*=} value
-         */
-        addData: function (name, value) {
-            if (arguments.length === 1) {
-                each(
-                    name,
-                    function (value, name) {
-                        data[name] = value;
-                    }
-                );
-            }
-            else {
-                data[name] = value;
-            }
         }
+
     };
 
 
-    [ 'debug', 'info', 'warn', 'error' ].forEach(
+    each(
+        ['debug', 'info', 'warn', 'error'],
         function (type) {
             exports[type] = function (data) {
                 data.logType = type;

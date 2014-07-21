@@ -1,5 +1,5 @@
 /**
- * @file 往返时间
+ * @file 获取网页加载时间点（需浏览器支持 timing api）
  * @author zhujl
  */
 (function (global) {
@@ -43,30 +43,42 @@
             }
         }
 
-
         return result;
     }
 
     var exports = {
 
         /**
-         * 初始化
-         *
-         * @param {Object} options
-         */
-        init: function (options) {
-            // 这里没啥可配置的...
-        },
-
-        /**
          * onload 事件后调用
          */
         ready: function () {
-            WAT.addData(getTiming());
+            var timing = getTiming();
+            exports.data = {
+                timing_navigationStart: timing.navigationStart,
+                timing_unloadEventEnd: timing.unloadEventEnd,
+                timing_redirectStart: timing.redirectStart,
+                timing_redirectEnd: timing.redirectEnd,
+                timing_fetchStart: timing.fetchStart,
+                timing_domainLookupStart: timing.domainLookupStart,
+                timing_domainLookupEnd: timing.domainLookupEnd,
+                timing_connectStart: timing.connectStart,
+                timing_connectEnd: timing.connectEnd,
+                timing_requestStart: timing.requestStart,
+                timing_responseStart: timing.responseStart,
+                timing_responseEnd: timing.responseEnd,
+                timing_domLoading: timing.domLoading,
+                timing_domInteractive: timing.domInteractive,
+                timing_domContentLoadedEventStart: timing.domContentLoadedEventStart,
+                timing_domContentLoadedEventEnd: timing.domContentLoadedEventEnd,
+                timing_domComplete: timing.domComplete,
+                timing_loadEventStart: timing.loadEventStart,
+                timing_loadEventEnd: timing.loadEventEnd,
+                timing_firstPaint: timing.firstPaint
+            };
         }
+
     };
 
-
-    WAT.plugins.RT = exports;
+    global.WAT.plugins.timing = exports;
 
 })(this);

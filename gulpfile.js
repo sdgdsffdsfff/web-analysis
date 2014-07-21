@@ -4,10 +4,12 @@ var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 
 gulp.task('concat', function () {
-    gulp.src('./src/*.js')
+
+    gulp.src(['./src/*.js', './src/plugins/*.js'])
         .pipe(uglify())
         .pipe(concat('wat.min.js'))
         .pipe(gulp.dest('./output'));
+
 });
 
 gulp.task('default', ['concat']);
