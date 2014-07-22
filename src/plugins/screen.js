@@ -21,7 +21,6 @@
 
     };
 
-
-    global.WAT.plugins.screen = exports;
+    global.WAT.register('screen', exports);
 
 })(this);

@@ -47,7 +47,7 @@
      * @param {Function} callback
      */
     function each(target, callback) {
-        if ('length' in target) {
+        if (typeof target.pop === 'function') {
             for (var i = 0, len = target.length; i < len; i++) {
                 callback(target[i], i);
             }
@@ -97,9 +97,11 @@
             each(
                 data,
                 function (value, name) {
-                    queryArr.push(
-                        name + '=' + encodeURIComponent(value)
-                    );
+                    if (value !== null) {
+                        queryArr.push(
+                            name + '=' + encodeURIComponent(value)
+                        );
+                    }
                 }
             );
 
@@ -118,7 +120,7 @@
             };
 
             // 加时间戳
-            queryArr.push((+new Date()).toString(36));
+            queryArr.push('_t=' + (+new Date()).toString(36));
 
             img.src = url + '?' + queryArr.join('&');
         };
@@ -133,10 +135,8 @@
         // 1. 不跟业务代码抢 onload 时间点，页面尽早可交互
         // 2. firstPaint（白屏时间）在 onload 读取可能是 0
         setTimeout(
-            function () {
-                exports.ready();
-            },
-            1000
+            exports.ready,
+            200
         );
 
     });
@@ -248,17 +248,17 @@
                 }
             );
 
-            // 清理空数据
-            each(
-                data,
-                function (value, key) {
-                    if (value == null || value === '') {
-                        delete data[key];
-                    }
-                }
-            );
-
             exports.info(data);
+        },
+
+        /**
+         * 注册插件
+         *
+         * @param {string} name 插件名称
+         * @param {Object} plugin 插件对象
+         */
+        register: function (name, plugin) {
+            exports.plugins[name] = plugin;
         }
 
     };

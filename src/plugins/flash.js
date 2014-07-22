@@ -40,6 +40,6 @@
 
     };
 
-    global.WAT.plugins.flash = exports;
+    global.WAT.register('flash', exports);
 
 })(this);

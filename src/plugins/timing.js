@@ -79,6 +79,6 @@
 
     };
 
-    global.WAT.plugins.timing = exports;
+    global.WAT.register('timing', exports);
 
 })(this);

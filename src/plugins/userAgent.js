@@ -19,7 +19,6 @@
 
     };
 
-
-    global.WAT.plugins.userAgent = exports;
+    global.WAT.register('userAgent', exports);
 
 })(this);
